@@ -1,0 +1,38 @@
+version: "3"
+services:
+  adminer:
+    image: adminer
+    container_name: pr-webcode-adminer
+    restart: always
+    ports:
+      - 8088:8080
+    depends_on:
+      - db
+  db:
+    image: mariadb:10.5.9-focal
+    container_name: wallet-db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: wallets
+      MYSQL_ROOT_PASSWORD: wallets
+      MYSQL_PASSWORD: wallets
+      MYSQL_USER: wallets
+    volumes:
+      - web-wallets-db-data:/var/lib/mysql
+
+  php:
+    build: .
+    container_name: web-wallets
+    restart: "no"
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - ./:/var/www/web-wallets
+    ports:
+      - "8000:80"
+
+volumes:
+  web-wallets-db-data:

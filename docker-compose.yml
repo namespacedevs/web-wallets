@@ -27,12 +27,11 @@ services:
     container_name: web-wallets
     restart: "no"
     depends_on:
-      - redis
       - db
     volumes:
       - ./:/var/www/web-wallets
     ports:
-      - "8000:80"
+      - "80:80"
 
 volumes:
   web-wallets-db-data:

@@ -27,7 +27,6 @@ services:
     container_name: web-wallets
     restart: "no"
     depends_on:
-      - redis
       - db
     volumes:
       - ./:/var/www/web-wallets

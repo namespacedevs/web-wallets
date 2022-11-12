@@ -1,37 +1,45 @@
-version: "3"
-services:
-  adminer:
-    image: adminer
-    container_name: pr-webcode-adminer
-    restart: always
-    ports:
-      - 8088:8080
-    depends_on:
-      - db
-  db:
-    image: mariadb:10.5.9-focal
-    container_name: wallet-db
-    restart: unless-stopped
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_DATABASE: wallets
-      MYSQL_ROOT_PASSWORD: wallets
-      MYSQL_PASSWORD: wallets
-      MYSQL_USER: wallets
-    volumes:
-      - web-wallets-db-data:/var/lib/mysql
+version: '3.8'
 
-  php:
-    build: .
-    container_name: web-wallets
-    restart: "no"
+services:
+  nginx:
+    container_name: wallets-nginx
+    image: nginx:alpine
+    restart: unless-stopped
     depends_on:
-      - db
+      - php
+    ports:
+      - "8002:80"
+    working_dir: /var/www/web-wallets
     volumes:
       - ./:/var/www/web-wallets
+      - ./docker/nginx/:/etc/nginx/conf.d/
+  php:
+    container_name: wallets-php
+    build:
+      context: ./
+      dockerfile: Dockerfile
     ports:
-      - "80:80"
-
-volumes:
-  web-wallets-db-data:
+      - "8080:8080"
+    working_dir: /var/www/web-wallets
+    volumes:
+      - .:/var/www/web-wallets
+      - /var/www/web-wallets/vendor
+  postgres:
+    container_name: wallets-postgres
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./docker/postgres/database:/var/lib/postgresql/data
+      - ./docker/postgres/dumps:/docker-entrypoint-initdb.d/
+  redis:
+    container_name: wallets-redis
+    image: redis:alpine
+    restart: always
+    ports:
+      - "63379:6379"

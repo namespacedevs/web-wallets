@@ -1,33 +1,59 @@
 FROM php:7.4-fpm
 
-RUN apt-get update -y \
-    && apt-get install -y nginx
+# Arguments defined in docker-compose.yml
+ARG user
 
-# PHP_CPPFLAGS are used by the docker-php-ext-* scripts
-ENV PHP_CPPFLAGS="$PHP_CPPFLAGS -std=c++11"
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    vim \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    libzip-dev \
+    libcurl4-openssl-dev \
+    pkg-config \
+    libssl-dev \
+    libpq-dev \
+    && docker-php-ext-configure gd \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-install pdo pdo_pgsql pgsql \
+    && docker-php-ext-install zip \
+    && docker-php-source delete
 
-RUN docker-php-ext-install pdo_mysql \
-    && docker-php-ext-install opcache \
-    && apt-get install libicu-dev -y \
-    && docker-php-ext-configure intl \
-    && docker-php-ext-install intl \
-    && apt-get remove libicu-dev icu-devtools -y
-RUN { \
-    echo 'opcache.memory_consumption=128'; \
-    echo 'opcache.interned_strings_buffer=8'; \
-    echo 'opcache.max_accelerated_files=4000'; \
-    echo 'opcache.revalidate_freq=2'; \
-    echo 'opcache.fast_shutdown=1'; \
-    echo 'opcache.enable_cli=1'; \
-    } > /usr/local/etc/php/conf.d/php-opocache-cfg.ini
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY ./docker/nginx.conf /etc/nginx/nginx.conf
-COPY ./docker/entrypoint.sh /etc/entrypoint.sh
+# Install PHP extensions
+# RUN docker-php-ext-install pdo_pgsql zip mbstring exif pcntl bcmath gd xml
 
-COPY --chown=www-data:www-data . /var/www/web-wallets
+# Install node
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y nodejs
 
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+
+# Create system user to run Composer and Artisan Commands
+# Add user for laravel application
+RUN groupadd -g 1000 www
+RUN useradd -u 1000 -ms /bin/bash -g www www
+
+
+
+# Set working directory
 WORKDIR /var/www/web-wallets
 
-EXPOSE 80
+COPY . /var/www/web-wallets
+RUN composer install --ignore-platform-reqs
+RUN npm i
+USER $user
 
-ENTRYPOINT ["sh", "/etc/entrypoint.sh"]
+# COPY ./entrypoint.sh /entrypoint.sh
+
+

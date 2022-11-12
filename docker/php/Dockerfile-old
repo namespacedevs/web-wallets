@@ -1,0 +1,46 @@
+FROM php:7.4-fpm
+
+ENV COMPOSER_ALLOW_SUPERUSER 1
+ENV COMPOSER_PROCESS_TIMEOUT 900
+
+RUN apt-get update
+RUN apt-get install bash -y
+RUN apt-get install wget -y
+
+RUN apt-get install -y libpq-dev \
+    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-install pdo pdo_pgsql pgsql
+
+RUN pecl install redis
+RUN docker-php-ext-enable redis
+
+RUN docker-php-ext-install bcmath
+
+RUN apt-get install unzip libzip-dev -y
+RUN docker-php-ext-install zip
+
+RUN apt-get install libc-dev -y
+
+RUN apt-get install libpng-dev -y
+RUN docker-php-ext-install gd
+
+RUN apt-get install jq git -y
+
+RUN ln -s /var/www/ieducar/diario-laravel /usr/local/bin/artisan
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-install pcntl
+
+RUN apt-get install npm -y
+#RUN npm install -g npm -y
+#RUN npm install -g node -y
+
+RUN composer self-update
+
+RUN apt-get install python -y
+
+WORKDIR /var/www/diario-laravel
+
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh

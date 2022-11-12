@@ -13,7 +13,13 @@ class Asset extends Migration
      */
     public function up()
     {
-        //
+        Schema::create('assets', function (Blueprint $table) {
+            $table->id();
+            $table->string('code')->unique();
+            $table->float('last_price', 8, 2);
+            $table->timestamp('last_used_at')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -23,6 +29,6 @@ class Asset extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('assets');
     }
 }

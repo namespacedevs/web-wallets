@@ -12,4 +12,10 @@ class Wallet extends Model
         'name',
         'description',
     ];
+
+    public function assets(){
+        return $this->belongsToMany(
+            Asset::class,
+            'wallets_assets');
+    }
 }

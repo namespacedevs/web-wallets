@@ -14,4 +14,9 @@ class Asset extends Model
         'description',
         'last_price',
     ];
+    
+    public function wallets()
+    {
+        return $this->belongsToMany(Wallet::class, 'wallets_assets');
+    }
 }

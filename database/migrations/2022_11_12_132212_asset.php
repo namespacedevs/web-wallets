@@ -16,7 +16,9 @@ class Asset extends Migration
         Schema::create('assets', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique();
-            $table->float('last_price', 8, 2);
+            $table->string('name')->nullable();
+            $table->string('description')->nullable();
+            $table->float('last_price', 8, 2)->nullable();
             $table->timestamp('last_used_at')->nullable();
             $table->timestamps();
         });

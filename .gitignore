@@ -1,3 +1,4 @@
 .env
 vendor
+docker/postgres/database/*
 node_modules

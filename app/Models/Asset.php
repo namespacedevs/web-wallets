@@ -5,17 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Wallet extends Model
+class Asset extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'code',
         'name',
         'description',
+        'last_price',
     ];
-
-    public function assets(){
-        return $this->belongsToMany(
-            Asset::class,
-            'wallets_assets');
+    
+    public function wallets()
+    {
+        return $this->belongsToMany(Wallet::class, 'wallets_assets');
     }
 }
